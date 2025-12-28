@@ -1,3 +1,4 @@
+# app/api/search.py
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import String
@@ -15,15 +16,20 @@ def get_db():
 
 
 @router.get("/search_metadata")
-def search_metadata(query: str = Query(..., description="Regex or text to search in metadata_json"), 
-                    db: Session = Depends(get_db)):
+def search_metadata(
+    query: str = Query(..., description="Regex or text to search in metadata_json"),
+    limit: int = Query(2, ge=1),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
     """
     Full-text search in metadata_json (JSONB) using pg_trgm + GIN index
     """
-    # Cast JSONB to text and use PostgreSQL regex match (~*) for case-insensitive search
-    results = db.query(Publication).filter(
-        Publication.metadata_json.cast(String).op("~*")(query)
-    ).all()
+    results = db.query(Publication)\
+                .filter(Publication.metadata_json.cast(String).op("~*")(query))\
+                .offset(offset)\
+                .limit(limit)\
+                .all()
     
     return [
         {

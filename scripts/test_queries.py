@@ -97,7 +97,7 @@ else:
 print_block("6. Full-text search on JSONB metadata_json using pg_trgm + GIN")
 
 params = {
-    "query": "Preface"  # replace with regex or text you want to search
+    "query": "."  # replace with regex or text you want to search
 }
 
 r = requests.get(f"{BASE}/search_metadata", params=params)
@@ -112,3 +112,12 @@ if r.status_code == 200:
         })
 else:
     print("Error:", r.text)
+
+
+
+
+r = requests.get(f"{BASE}/where", params={"limit": 5, "offset": 0})
+data = r.json()
+print(f"Returned {len(data)} records")
+for row in data:
+    print(row)
