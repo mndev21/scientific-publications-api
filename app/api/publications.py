@@ -14,31 +14,19 @@ def get_db():
 
 @router.post("/")
 def create_publication(pub: dict, db: Session = Depends(get_db)):
-    author_data = pub.pop("author", None)
+    author_name = pub.pop("author", None)
 
-    author_obj = None
-    if author_data and "name" in author_data:
-        author_obj = db.query(Author).filter(
-            Author.name == author_data["name"]
-        ).first()
-
-        if not author_obj:
-            author_obj = Author(name=author_data["name"])
-            db.add(author_obj)
+    author = None
+    if author_name:
+        author = db.query(Author).filter_by(name=author_name).first()
+        if not author:
+            author = Author(name=author_name)
+            db.add(author)
             db.commit()
-            db.refresh(author_obj)
+            db.refresh(author)
 
-    publication = Publication(**pub)
-
-    if author_obj:
-        publication.author_id = author_obj.id
-
-    db.add(publication)
+    obj = Publication(**pub, author_id=author.id if author else None)
+    db.add(obj)
     db.commit()
-    db.refresh(publication)
-
-    return publication
-
-@router.get("/")
-def list_publications(db: Session = Depends(get_db)):
-    return db.query(Publication).all()
+    db.refresh(obj)
+    return obj

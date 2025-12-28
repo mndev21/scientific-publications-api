@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+# app/models.py
+
+from sqlalchemy import Column, Integer, String, ForeignKey, JSON
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import JSONB
-from .database import Base
+from app.database import Base
 
 class Author(Base):
     __tablename__ = "authors"
@@ -9,16 +10,18 @@ class Author(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, index=True)
 
+    publications = relationship("Publication", back_populates="author")
+
 class Publication(Base):
     __tablename__ = "publications"
 
     id = Column(Integer, primary_key=True)
-    title = Column(Text, index=True)
-    year = Column(Integer)
+    title = Column(String)
     journal = Column(String)
-    doi = Column(String, unique=True)
-    abstract = Column(JSONB)
-    metadata_json = Column(JSONB)
+    year = Column(Integer)
+    doi = Column(String)
+    abstract = Column(JSON)
 
     author_id = Column(Integer, ForeignKey("authors.id"))
-    author = relationship("Author")
+    author = relationship("Author", back_populates="publications")
+
