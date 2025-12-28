@@ -39,7 +39,7 @@ r = requests.get(f"{BASE}/join")
 if r.status_code == 200:
     data = r.json()
     print(f"Returned {len(data)} records")
-    for row in data[:5]:
+    for row in data[:-1]:
         print({
             "title": row["title"],
             "year": row["year"],
@@ -88,6 +88,27 @@ if r.status_code == 200:
             "title": row["title"],
             "journal": row["journal"],
             "year": row["year"]
+        })
+else:
+    print("Error:", r.text)
+
+
+# 6. Full-text search on JSONB metadata_json using pg_trgm + GIN
+print_block("6. Full-text search on JSONB metadata_json using pg_trgm + GIN")
+
+params = {
+    "query": "Preface"  # replace with regex or text you want to search
+}
+
+r = requests.get(f"{BASE}/search_metadata", params=params)
+if r.status_code == 200:
+    data = r.json()
+    print(f"Returned {len(data)} records")
+    for row in data[:5]:
+        print({
+            "id": row["id"],
+            "title": row["title"],
+            "metadata_json": row["metadata_json"]
         })
 else:
     print("Error:", r.text)

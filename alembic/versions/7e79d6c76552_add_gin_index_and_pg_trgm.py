@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers
 revision = 'add_gin_index_abstract'
-down_revision = 'previous_revision_id'
+down_revision = 'fc65d2be351a'
 branch_labels = None
 depends_on = None
 
