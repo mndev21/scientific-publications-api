@@ -18,7 +18,7 @@ class Publication(Base):
     journal = Column(String)
     doi = Column(String, unique=True)
     abstract = Column(JSONB)
-    metadata = Column(JSONB)
+    metadata_json = Column(JSONB)
 
     author_id = Column(Integer, ForeignKey("authors.id"))
     author = relationship("Author")
