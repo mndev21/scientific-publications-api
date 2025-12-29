@@ -100,7 +100,7 @@ print_block("6. Full-text search on JSONB metadata_json using pg_trgm + GIN")
 
 # Provide a POSIX/psql-style regex for searching the JSONB text (server uses ~* operator)
 params = {
-    "query": "publisher"  # replace with regex or text you want to search
+    "query": "Aloha International Journal of Management Advancement"  # replace with regex or text you want to search
 }
 
 r = requests.get(f"{BASE}/search_metadata", params=params)
