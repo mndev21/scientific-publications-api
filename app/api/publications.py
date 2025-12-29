@@ -20,24 +20,37 @@ def get_db():
 @router.post("/")
 def create_publication(pub: dict, db: Session = Depends(get_db)):
     author = None
-
+    # Preferred: incoming payload contains 'authors' list of dicts
     if "authors" in pub and pub["authors"]:
         a = pub["authors"][0]
+        # prefer family name as stored name; if family missing, use combined given+family
+        family = a.get("family", "") or ""
+        full_name = family if family else f"{a.get('given','')} {a.get('family','')}".strip()
 
         author = db.query(Author).filter(
-            Author.name == a.get("family", "")
+            Author.name == full_name
         ).first()
 
         if not author:
             author = Author(
-                name=a.get("family", ""),
+                name=full_name,
                 affiliation=str(a.get("affiliation", [])) if a.get("affiliation") else None
             )
             db.add(author)
             db.flush()
+    # Fallback: loader or other clients may send a single 'author' string
+    elif "author" in pub and pub.get("author"):
+        name = pub.get("author")
+        author = db.query(Author).filter(Author.name == name).first()
+        if not author:
+            author = Author(name=name)
+            db.add(author)
+            db.flush()
 
     pub_data = pub.copy()
+    # remove possible extra keys not present on Publication
     pub_data.pop("authors", None)
+    pub_data.pop("author", None)
 
     obj = Publication(
         **pub_data,

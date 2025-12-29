@@ -1,4 +1,6 @@
 import requests
+import re
+import json
 
 BASE = "http://127.0.0.1:8000/queries"
 
@@ -96,19 +98,29 @@ else:
 # 6. Full-text search on JSONB metadata_json using pg_trgm + GIN
 print_block("6. Full-text search on JSONB metadata_json using pg_trgm + GIN")
 
+# Provide a POSIX/psql-style regex for searching the JSONB text (server uses ~* operator)
 params = {
-    "query": "."  # replace with regex or text you want to search
+    "query": "publisher"  # replace with regex or text you want to search
 }
 
 r = requests.get(f"{BASE}/search_metadata", params=params)
 if r.status_code == 200:
     data = r.json()
-    print(f"Returned {len(data)} records")
-    for row in data[:5]:
+    print(f"Returned {len(data)} records matching regex: {params['query']}")
+    pattern = re.compile(params['query'], re.IGNORECASE)
+
+    for row in data:
+        # convert metadata_json to text for client-side matching and extraction
+        mj_text = json.dumps(row.get("metadata_json", {}))
+        matches = pattern.findall(mj_text)
+        # Only show rows where we found matches (server already filtered, but this trims output)
+        if not matches:
+            continue
+
         print({
             "id": row["id"],
             "title": row["title"],
-            "metadata_json": row["metadata_json"]
+            "matches": matches[:10]  # show up to 10 match snippets
         })
 else:
     print("Error:", r.text)
@@ -116,8 +128,9 @@ else:
 
 
 
-r = requests.get(f"{BASE}/where", params={"limit": 5, "offset": 0})
-data = r.json()
-print(f"Returned {len(data)} records")
-for row in data:
-    print(row)
+# r = requests.get(f"{BASE}/where", params={"limit": 5, "offset": 0})
+# data = r.json()
+# print(f"Returned {len(data)} records")
+# for row in data:
+    # print(row)
+# 

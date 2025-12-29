@@ -11,6 +11,7 @@ class Author(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, index=True)
+    affiliation = Column(String, nullable=True)
 
     publications = relationship("Publication", back_populates="author")
 
