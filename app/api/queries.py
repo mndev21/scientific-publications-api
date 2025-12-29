@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.database import SessionLocal
@@ -23,8 +23,16 @@ def publications_after_year_in_journal(year: int, journal: str, db: Session = De
 
 # 2. JOIN
 @router.get("/join")
-def publications_with_authors(db: Session = Depends(get_db)):
-    result = db.query(Publication, Author).join(Author).all()
+def publications_with_authors(
+    limit: int = Query(100, ge=1, le=100, description="Maximum number of rows to return (capped at 100)"),
+    offset: int = Query(0, ge=0, description="Row offset for pagination"),
+    db: Session = Depends(get_db)
+):
+    """Return publications joined with their authors.
+
+    The `limit` parameter is restricted to a maximum of 100 rows to avoid very large joins.
+    """
+    result = db.query(Publication, Author).join(Author).limit(limit).offset(offset).all()
     return [
         {
             "title": p.title,
